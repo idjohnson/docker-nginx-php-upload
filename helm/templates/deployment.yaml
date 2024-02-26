@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "simpleupload.fullname" . }}
+  labels:
+    {{- include "simpleupload.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      app: {{ include "simpleupload.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "simpleupload.name" . }}
+    spec:
+      containers:
+      - name: nginxphpupload
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: {{ .Values.service.targetPort }}
+          protocol: TCP
+        env:
+        - name: PHP_UPLOAD_MAX_FILESIZE
+          value: "{{ .Values.env.PHP_UPLOAD_MAX_FILESIZE }}"
+        - name: PHP_POST_MAX_SIZE
+          value: "{{ .Values.env.PHP_POST_MAX_SIZE }}"
+        - name: PHP_MEM_LIMIT
+          value: "{{ .Values.env.PHP_MEM_LIMIT }}"
+        volumeMounts:
+        - name: upload-volume
+          mountPath: /var/www/html/uploads
+      volumes:
+      - name: upload-volume
+        persistentVolumeClaim:
+          claimName: {{ include "simpleupload.fullname" . }}-pvc

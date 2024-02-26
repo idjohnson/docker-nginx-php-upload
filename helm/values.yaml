@@ -1,0 +1,31 @@
+replicas: 1
+
+image:
+  repository: idjohnson/nginxphpupload
+  tag: 0.0.2
+  pullPolicy: IfNotPresent
+
+service:
+  #type: LoadBalancer
+  type: ClusterIP
+  port: 80
+  targetPort: 80
+
+persistence:
+  storageClass: local-path
+  accessMode: ReadWriteOnce
+  size: 5Gi
+
+ingress:
+  enabled: true
+  clusterIssuer: azuredns-tpkpw
+  ingressClass: nginx
+  proxyReadTimeout: 3600
+  proxySendTimeout: 3600
+  hostFQDN: quickupload.tpk.pw
+  proxyBodySize: 32m
+
+env:
+  PHP_UPLOAD_MAX_FILESIZE: 100000
+  PHP_POST_MAX_SIZE: 100000
+  PHP_MEM_LIMIT: 100000

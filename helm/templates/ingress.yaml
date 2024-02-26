@@ -1,0 +1,34 @@
+{{ if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: {{ .Values.ingress.clusterIssuer }}
+    kubernetes.io/ingress.class: {{ .Values.ingress.ingressClass }}
+    kubernetes.io/tls-acme: "true"
+    ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "{{ .Values.ingress.proxyReadTimeout }}"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "{{ .Values.ingress.proxySendTimeout }}"
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.org/client-max-body-size: "0"
+    nginx.org/websocket-services: {{ include "simpleupload.fullname" . }}
+  labels:
+    app.kubernetes.io/instance: {{ include "simpleupload.fullname" . }}-ingress
+  name: {{ include "simpleupload.fullname" . }}-ingress
+spec:
+  rules:
+  - host: {{ .Values.ingress.hostFQDN }}
+    http:
+      paths:
+      - backend:
+          service:
+            name: {{ include "simpleupload.fullname" . }}
+            port:
+              number: {{ .Values.service.port }}
+        path: /
+        pathType: ImplementationSpecific
+  tls:
+  - hosts:
+    - {{ .Values.ingress.hostFQDN }}
+    secretName: {{ include "simpleupload.fullname" . }}-tls
+{{ end }}
